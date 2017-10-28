@@ -1,3 +1,83 @@
 <h3>Trainer</h3>
 <p>Name: <%= @trainer.name if @trainer.name %></p>
 <p>Email: <%= @trainer.email if @trainer.email %></p>
+
+<!-- Table of pokemons with actions on them.  -->
+<table>
+    <!-- Table Header -->
+    <tr>
+        <th>Pokemon Name</th>
+        <th>Action</th>
+    </tr>
+
+    <!-- If the trainer is looking at own profile page, see N/A only if no healthly nor healthless pokemon is owned. -->
+    <!-- If the trainer is looking at other trainer's profile page, see N/A as long as no healthy pokemon. -->
+    <% if (@trainer == current_trainer && @healthy_pokemons.empty? && @healthless_pokemons.empty?) || (@trainer != current_trainer && @healthy_pokemons.empty?) %>
+        <tr>
+            <td>N/A</td>
+            <td>N/A</td>
+        </tr>
+    <!-- If the trainer is looking at own profile page, see "Heal or Create!" if no healthy pokemon is owned but some healthless pokemons are owned. -->
+    <% elsif @trainer == current_trainer && @healthy_pokemons.empty? && @healthless_pokemons.any? %>
+        <tr>
+            <td>Heal or Create!</td>
+            <td></td>
+        </tr>
+    <!-- Otherwise, list the healthy pokemons. -->
+    <% else %>
+        <!-- For each healthy pokemon, show name, level and health in one column and actions on them on another in their own row. -->
+        <% @healthy_pokemons.each do |healthy_pokemon| %>
+            <tr>
+                <td>
+                    <!-- The table data in this case is the name of pokemon with level and health in untitled list. -->
+                    <%= healthy_pokemon.name %>
+                    <ul>
+                        <li> Level: <%= healthy_pokemon.level %> </li>
+                        <li> Health: <%= healthy_pokemon.health %> </li>
+                    </ul>
+                </td>
+
+                <td>
+                    <!-- The table data in this case are the actions on pokemon. -->
+                    <!-- If the trainer is owner, a choice to heal the owned pokemons. -->
+                    <% if @trainer == current_trainer %>
+                        <%= button_to "Heal!", heal_path(id: healthy_pokemon), :class => "button medium", :method => :patch %>
+                    <!-- If the traner is not a owner, a choice to attack the pokemons. -->
+                    <% else %>
+                        <%= button_to "Damage!", damage_path(id: healthy_pokemon), :class => "button medium", :method => :patch %>
+                    <% end %>
+                </td>
+            </tr>
+        <% end %>
+    <% end %>
+</table>
+
+<!-- You can only create a pokemon for yourself and heal your own ones. -->
+<% if @trainer == current_trainer %>
+    <%= button_to "Create a new pokemon!", new_path, :class => "button medium", :method => :get %>
+    <!-- Show the table below only if there are pokemons need to heal.. -->
+    <% if @healthless_pokemons.any? %>
+        <table>
+            <tr>
+                <th>Hibernated Pokemon</th>
+                <th>Action</th>
+            </tr>
+
+            <% @healthless_pokemons.each do |healthless_pokemon| %>
+                <tr>
+                    <td>
+                        <%= healthless_pokemon.name %>
+                        <ul>
+                            <li> Level: <%= healthless_pokemon.level %> </li>
+                            <li> Health: <%= healthless_pokemon.health %> </li>
+                        </ul>
+                    </td>
+
+                    <td>
+                        <%= button_to "Heal!", heal_path(id: healthless_pokemon), :class => "button medium", :method => :patch %>
+                    </td>
+                </tr>
+            <% end %>
+        </table>
+    <% end %>
+<% end %>
